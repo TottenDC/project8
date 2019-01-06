@@ -1,3 +1,4 @@
+//****** Modules ******//
 const { src, dest,
         series, parallel,
         watch } = require('gulp');
@@ -12,7 +13,8 @@ const imagemin = require('gulp-imagemin');
 const connect = require('gulp-connect');
 
 
-//Tasks
+//****** Tasks ******//
+//JS Tasks
 function concatJS() {
   return src(['js/circle/autogrow.js',
               'js/circle/circle.js',
@@ -29,7 +31,7 @@ function minifyJS() {
          .pipe(rename('all.min.js'))
          .pipe(dest('dist/scripts'));
 }
-
+//CSS Tasks
 function compileSass() {
   return src('sass/global.scss')
          .pipe(rename('all.css'))
@@ -45,39 +47,55 @@ function minifySass() {
          .pipe(rename('all.min.css'))
          .pipe(dest('dist/styles'));
 }
-
+//Compress Images
 function images() {
   return src('images/**/*.{jpg,png}')
          .pipe(imagemin())
          .pipe(dest('dist/content'));
 }
-
+//Copy Tasks
 function copyIcons() {
   return src(['icons/**'], {base: './'})
          .pipe(dest('dist'));
 }
 
 function htmlTransfer() {
-  return src('index.html')
+  return src('*.html')
          .pipe(dest('dist'))
 }
-
+//Server and Watch Tasks
 function serve(cb) {
     connect.server({
       port: 3000,
+      root: 'dist',
+      livereload: true
     });
     cb();
 }
 
+function reload() {
+  return src('dist/*.html')
+         .pipe(connect.reload());
+}
+
+function watchSass(cb) {
+  watch('sass/**/*.scss', series(compileSass, minifySass, reload));
+  cb();
+}
+//Clean Task
 function clean() {
   return del(['dist/', 'tmp/']);
 }
 
-//Exports
+
+
+//****** Task Export ******//
 exports.scripts = series(
   concatJS, minifyJS
 );
-exports.styles = series(compileSass, minifySass);
+exports.styles = series(
+  compileSass, minifySass
+);
 exports.images = images;
 exports.clean = clean;
 exports.build = series(
@@ -95,5 +113,7 @@ exports.default = series(
     series(compileSass, minifySass),
     images, copyIcons, htmlTransfer
   ),
-  serve
+  series(
+    serve, watchSass
+  )
 );
