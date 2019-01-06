@@ -9,6 +9,7 @@ const del = require('del');
 const sass = require('gulp-sass');
 const csso = require('gulp-csso');
 const imagemin = require('gulp-imagemin');
+const connect = require('gulp-connect');
 
 
 //Tasks
@@ -51,9 +52,21 @@ function images() {
          .pipe(dest('dist/content'));
 }
 
-function copyHTMLandIcons() {
-  return src(['icons/**', 'index.html'], {base: './'})
+function copyIcons() {
+  return src(['icons/**'], {base: './'})
          .pipe(dest('dist'));
+}
+
+function htmlTransfer() {
+  return src('index.html')
+         .pipe(dest('dist'))
+}
+
+function serve(cb) {
+    connect.server({
+      port: 3000,
+    });
+    cb();
 }
 
 function clean() {
@@ -72,6 +85,15 @@ exports.build = series(
   parallel(
     series(concatJS, minifyJS),
     series(compileSass, minifySass),
-    images),
-  copyHTMLandIcons
+    images, copyIcons, htmlTransfer
+  )
+);
+exports.default = series(
+  clean,
+  parallel(
+    series(concatJS, minifyJS),
+    series(compileSass, minifySass),
+    images, copyIcons, htmlTransfer
+  ),
+  serve
 );
