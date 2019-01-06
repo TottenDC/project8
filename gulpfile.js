@@ -8,6 +8,7 @@ const rename = require('gulp-rename');
 const del = require('del');
 const sass = require('gulp-sass');
 const csso = require('gulp-csso');
+const imagemin = require('gulp-imagemin');
 
 
 //Tasks
@@ -45,7 +46,14 @@ function minifySass() {
 }
 
 function images() {
+  return src('images/**/*.{jpg,png}')
+         .pipe(imagemin())
+         .pipe(dest('dist/content'));
+}
 
+function copyHTMLandIcons() {
+  return src(['icons/**', 'index.html'], {base: './'})
+         .pipe(dest('dist'));
 }
 
 function clean() {
@@ -64,5 +72,6 @@ exports.build = series(
   parallel(
     series(concatJS, minifyJS),
     series(compileSass, minifySass),
-    images)
+    images),
+  copyHTMLandIcons
 );
