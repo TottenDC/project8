@@ -2,16 +2,15 @@
 const { src, dest,
         series, parallel,
         watch } = require('gulp');
-const maps = require('gulp-sourcemaps');
 const concat = require('gulp-concat');
-const uglify = require('gulp-uglify');
-const rename = require('gulp-rename');
-const del = require('del');
-const sass = require('gulp-sass');
-const csso = require('gulp-csso');
-const imagemin = require('gulp-imagemin');
 const connect = require('gulp-connect');
-
+const csso = require('gulp-csso');
+const del = require('del');
+const imagemin = require('gulp-imagemin');
+const maps = require('gulp-sourcemaps');
+const rename = require('gulp-rename');
+const sass = require('gulp-sass');
+const uglify = require('gulp-uglify');
 
 //****** Tasks ******//
 //JS Tasks
@@ -53,15 +52,10 @@ function images() {
          .pipe(imagemin())
          .pipe(dest('dist/content'));
 }
-//Copy Tasks
-function copyIcons() {
-  return src(['icons/**'], {base: './'})
+//Copy Task
+function copyFiles() {
+  return src(['icons/**', '*.html'], {base: './'})
          .pipe(dest('dist'));
-}
-
-function htmlTransfer() {
-  return src('*.html')
-         .pipe(dest('dist'))
 }
 //Server and Watch Tasks
 function serve(cb) {
@@ -87,8 +81,6 @@ function clean() {
   return del(['dist/', 'tmp/']);
 }
 
-
-
 //****** Task Export ******//
 exports.scripts = series(
   concatJS, minifyJS
@@ -103,7 +95,7 @@ exports.build = series(
   parallel(
     series(concatJS, minifyJS),
     series(compileSass, minifySass),
-    images, copyIcons, htmlTransfer
+    images, copyFiles
   )
 );
 exports.default = series(
@@ -111,7 +103,7 @@ exports.default = series(
   parallel(
     series(concatJS, minifyJS),
     series(compileSass, minifySass),
-    images, copyIcons, htmlTransfer
+    images, copyFiles
   ),
   series(
     serve, watchSass
