@@ -12,9 +12,9 @@ Use `npm install` to download all dependencies.
 
 Available tasks:
 * All tasks output into a distribute folder (dist).
-`gulp scripts` - concatonates and minifies JS files with a sourcemap.
-`gulp styles` - compiles and minifies SASS files with a sourcemap.
-`gulp images` - compresses images.
-`gulp clean` - deletes built files.
-`gulp build` - runs all tasks.
-`gulp` - runs all tasks, starts a local server on port 3000, and watches the Sass files for changes.
+    * `gulp scripts` - concatonates and minifies JS files with a sourcemap.
+    * `gulp styles` - compiles and minifies Sass files with a sourcemap.
+    * `gulp images` - compresses images.
+    * `gulp clean` - deletes built files.
+    * `gulp build` - runs all tasks.
+    * `gulp` - runs all tasks, starts a local server on port 3000, and watches the Sass files for changes.
