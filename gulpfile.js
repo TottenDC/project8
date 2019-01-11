@@ -1,7 +1,8 @@
 //****** Modules ******//
+const gulp = require('gulp');
 const { src, dest,
         series, parallel,
-        watch } = require('gulp');
+        watch } = gulp;
 const concat = require('gulp-concat');
 const connect = require('gulp-connect');
 const csso = require('gulp-csso');
