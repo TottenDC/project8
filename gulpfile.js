@@ -7,6 +7,7 @@ const concat = require('gulp-concat');
 const connect = require('gulp-connect');
 const csso = require('gulp-csso');
 const del = require('del');
+const htmlreplace = require('gulp-html-replace');
 const imagemin = require('gulp-imagemin');
 const maps = require('gulp-sourcemaps');
 const rename = require('gulp-rename');
@@ -14,38 +15,28 @@ const sass = require('gulp-sass');
 const uglify = require('gulp-uglify');
 
 //****** Tasks ******//
-//JS Tasks
-function concatJS() {
+//Concat and Minify JS
+function formatJS() {
   return src(['js/circle/autogrow.js',
               'js/circle/circle.js',
               'js/global.js'])
           .pipe(maps.init())
           .pipe(concat('all.js'))
-          .pipe(maps.write('../dist/scripts'))
-          .pipe(dest('tmp'));
+          .pipe(uglify())
+          .pipe(rename('all.min.js'))
+          .pipe(maps.write('./'))
+          .pipe(dest('dist/scripts'));
 }
-
-function minifyJS() {
-  return src('tmp/all.js')
-         .pipe(uglify())
-         .pipe(rename('all.min.js'))
-         .pipe(dest('dist/scripts'));
-}
-//CSS Tasks
-function compileSass() {
+//Compile Sass and Minify
+function formatCSS() {
   return src('sass/global.scss')
-         .pipe(rename('all.css'))
-         .pipe(maps.init())
-         .pipe(sass())
-         .pipe(maps.write('../dist/styles'))
-         .pipe(dest('tmp'));
-}
-
-function minifySass() {
-  return src('tmp/all.css')
-         .pipe(csso())
-         .pipe(rename('all.min.css'))
-         .pipe(dest('dist/styles'));
+          .pipe(maps.init())
+          .pipe(rename('all.css'))
+          .pipe(sass())
+          .pipe(csso())
+          .pipe(rename('all.min.css'))
+          .pipe(maps.write('./'))
+          .pipe(dest('dist/styles'));
 }
 //Compress Images
 function images() {
@@ -55,8 +46,38 @@ function images() {
 }
 //Copy Task
 function copyFiles() {
-  return src(['icons/**', '*.html'], {base: './'})
+  return src(['icons/**'], {base: './'})
          .pipe(dest('dist'));
+}
+//Update HTML for production
+function updateHTML() {
+  return src('index.html')
+          .pipe(htmlreplace({
+            css: 'styles/all.min.css',
+            js: 'scripts/all.min.js',
+            mImg: {
+              src: 'content/m-spore.png',
+              tpl: '<img src="%s" />'
+            },
+            fImg: {
+              src: 'content/f-spore.png',
+              tpl: '<img src="%s" />'
+            },
+            Img1: {
+              src: 'content/1.jpg',
+              tpl: '<img src="%s" />'
+            },
+            Img2: {
+              src: 'content/2.jpg',
+              tpl: '<img src="%s" />'
+            },
+            Img3: {
+              src: 'content/3.jpg',
+              tpl: '<img src="%s" />'
+            }
+
+          }))
+          .pipe(dest('dist'));
 }
 //Server and Watch Tasks
 function serve(cb) {
@@ -74,7 +95,7 @@ function reload() {
 }
 
 function watchSass(cb) {
-  watch('sass/**/*.scss', series(compileSass, minifySass, reload));
+  watch('sass/**/*.scss', series(formatCSS, reload));
   cb();
 }
 //Clean Task
@@ -83,28 +104,28 @@ function clean() {
 }
 
 //****** Task Export ******//
-exports.scripts = series(
-  concatJS, minifyJS
-);
-exports.styles = series(
-  compileSass, minifySass
-);
+exports.scripts = formatJS;
+exports.styles = formatCSS;
 exports.images = images;
 exports.clean = clean;
 exports.build = series(
   clean,
   parallel(
-    series(concatJS, minifyJS),
-    series(compileSass, minifySass),
-    images, copyFiles
+    formatJS,
+    formatCSS,
+    images, 
+    copyFiles,
+    updateHTML
   )
 );
 exports.default = series(
   clean,
   parallel(
-    series(concatJS, minifyJS),
-    series(compileSass, minifySass),
-    images, copyFiles
+    formatJS,
+    formatCSS,
+    images, 
+    copyFiles,
+    updateHTML
   ),
   series(
     serve, watchSass
